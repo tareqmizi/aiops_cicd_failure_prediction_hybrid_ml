@@ -1,0 +1,121 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: aiops_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=aiops
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - aiops-net
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:6.0
+    container_name: aiops_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - aiops-net
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: aiops_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - aiops-net
+    restart: unless-stopped
+
+  ollama-pull-model:
+    image: curlimages/curl:latest
+    container_name: aiops_ollama_pull
+    depends_on:
+      - ollama
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo 'Waiting for Ollama to boot...'
+        until curl -s http://ollama:11434/api/tags > /dev/null; do
+          sleep 2
+        done
+        echo 'Pulling llama3.2:3b model...'
+        curl -X POST http://ollama:11434/api/pull -d '{"name": "llama3.2:3b"}'
+        echo 'Model pulled successfully.'
+    networks:
+      - aiops-net
+
+  api-core:
+    build:
+      context: ./api_core
+      dockerfile: Dockerfile
+    container_name: aiops_api_core
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_MODEL=llama3.2:3b
+    depends_on:
+      - ollama
+    volumes:
+      - ./api_core:/app
+    networks:
+      - aiops-net
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aiops_backend
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - API_CORE_URL=http://api-core:8000
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/aiops
+      - MONGO_URL=mongodb://mongodb:27017/aiops
+    depends_on:
+      - postgres
+      - mongodb
+      - api-core
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - aiops-net
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: aiops_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - aiops-net
+    restart: unless-stopped
+
+networks:
+  aiops-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mongo_data:
+  ollama_data:

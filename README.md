@@ -7,7 +7,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker&logoColor=white)](./application/docker-compose.yml)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?logo=fastapi&logoColor=white)](./application/api_core)
 [![XGBoost](https://img.shields.io/badge/Model-XGBoost-FF6F00)](./model_training)
-[![BiLSTM](https://img.shields.io/badge/Model-BiLSTM-Keras-D00000)](./model_training)
+[![BiLSTM](https://img.shields.io/badge/Model-BiLSTM-D00000)](./model_training)
 
 > **Predictive Analysis of CI/CD Pipeline Failures** is a production-grade AIOps platform designed to forecast software build outcomes **prior to pipeline execution**. By integrating a **Hybrid Machine Learning Ensemble (XGBoost + BiLSTM)** trained on ~2.64 million TravisTorrent build records with an automated log-parsing **Root Cause Analysis (RCA)** diagnostic engine, this platform prevents unnecessary build agent allocation, minimizes developer alert fatigue, and reduces CI infrastructure overhead.
 

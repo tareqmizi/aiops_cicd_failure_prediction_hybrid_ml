@@ -148,11 +148,13 @@ Build failure probability is not solely dependent on individual commits; consecu
 #### Model Architecture
 The second branch organizes historical build logs per repository into sliding temporal windows of length $L = 10$. The **Bidirectional LSTM (BiLSTM)** processes sequence vectors in both forward and backward time directions:
 
-$$\overrightarrow{h}_t = \text{LSTM}\left(x_t, \overrightarrow{h}_{t-1}\right)$$
+$$\vec{h}_t = \mathrm{LSTM}\left(x_t, \vec{h}_{t-1}\right)$$
 
-$$\overleftarrow{h}_t = \text{LSTM}\left(x_t, \overleftarrow{h}_{t+1}\right)$$
+$$\vec{h}_t^\gets = \mathrm{LSTM}\left(x_t, \vec{h}_{t+1}^\gets\right)$$
 
-The hidden state representations are concatenated as $H_t = \left[\overrightarrow{h}_t ; \overleftarrow{h}_t\right]$ and passed through a fully connected dense layer with Sigmoid activation to estimate build failure probability $P_{\text{BiLSTM}}$.
+
+The hidden state representations are concatenated as $H_{t} = \left[\overrightarrow{h}_{t} \,;\, \overleftarrow{h}_{t}\right]$ and passed through a fully connected dense layer with a sigmoid activation function to estimate the build failure probability $P_{\mathrm{BiLSTM}}$.
+
 
 ---
 
